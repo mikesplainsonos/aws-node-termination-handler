@@ -461,7 +461,7 @@ func (n Node) fetchKubernetesNode(nodeName string) (*corev1.Node, error) {
 
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"kubernetes.io/hostname=": nodeName}}
 	listOptions := metav1.ListOptions{LabelSelector: labels.Set(labelSelector.MatchLabels).String()}
-	matchingNodes, err := n.drainHelper.Client.CoreV1().Nodes().List(context.TODO()listOptions)
+	matchingNodes, err := n.drainHelper.Client.CoreV1().Nodes().List(context.TODO(), listOptions)
 	if err != nil || len(matchingNodes.Items) == 0 {
 		log.Warn().Err(err).Msgf("Error when trying to list Nodes w/ label, falling back to direct Get lookup of node")
 		return n.drainHelper.Client.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
