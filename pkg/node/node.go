@@ -14,6 +14,7 @@
 package node
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -240,7 +241,7 @@ func (n Node) addLabel(nodeName string, key string, value string) error {
 		log.Log().Msgf("Would have added label (%s=%s) to node %s, but dry-run flag was set", key, value, nodeName)
 		return nil
 	}
-	_, err = n.drainHelper.Client.CoreV1().Nodes().Patch(node.Name, types.StrategicMergePatchType, payloadBytes)
+	_, err = n.drainHelper.Client.CoreV1().Nodes().Patch(context.TODO(), node.Name, types.StrategicMergePatchType, payloadBytes, metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("%v node Patch failed when adding a label to the node: %w", node.Name, err)
 	}
@@ -271,7 +272,7 @@ func (n Node) removeLabel(nodeName string, key string) error {
 		log.Log().Msgf("Would have removed label with key %s from node %s, but dry-run flag was set", key, nodeName)
 		return nil
 	}
-	_, err = n.drainHelper.Client.CoreV1().Nodes().Patch(node.Name, types.JSONPatchType, payload)
+	_, err = n.drainHelper.Client.CoreV1().Nodes().Patch(context.TODO(),node.Name, types.JSONPatchType, payload, metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("%v node Patch failed when removing a label from the node: %w", node.Name, err)
 	}
@@ -460,7 +461,7 @@ func (n Node) fetchKubernetesNode(nodeName string) (*corev1.Node, error) {
 
 	labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"kubernetes.io/hostname=": nodeName}}
 	listOptions := metav1.ListOptions{LabelSelector: labels.Set(labelSelector.MatchLabels).String()}
-	matchingNodes, err := n.drainHelper.Client.CoreV1().Nodes().List(listOptions)
+	matchingNodes, err := n.drainHelper.Client.CoreV1().Nodes().List(context.TODO()listOptions)
 	if err != nil || len(matchingNodes.Items) == 0 {
 		log.Warn().Err(err).Msgf("Error when trying to list Nodes w/ label, falling back to direct Get lookup of node")
 		return n.drainHelper.Client.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
